@@ -1,0 +1,108 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define M 110000
+typedef long long ll;
+typedef unsigned long long ull;
+inline ll read() {
+	char ch;
+	ll f = 1, res = 0;
+	while ((ch = getchar()) < '0' || ch > '9')
+		if (ch == '-') f = -1;
+	while (ch >= '0' && ch <= '9') {
+		res = (res << 1) + (res << 3) + (ch ^ 48);
+		ch = getchar();
+	}
+	return f * res;
+}
+inline void pt(ll u,ll mod) {
+	printf("%lld", u);
+	if (mod == 1)
+		putchar(' ');
+	else if (mod == 2)
+		putchar('\n');
+}
+
+ll n,m;
+ll clk=1;
+bool vis[M];
+ll v[M];
+ll f[M];
+ll d[M];
+ll dp[M];
+ll dfsTime[M];
+ll minTime[M];
+vector<ll>e[M];
+vector<ll>el[M];
+stack<ll>stk;
+void tar(ll inx) {
+	dfsTime[inx] = minTime[inx] = clk++;
+	stk.push(inx);
+	vis[inx]=true;
+	for (auto u:e[inx]) {
+		if (!dfsTime[u]) {
+			tar(u);
+			minTime[inx] = min(minTime[inx], minTime[u]);
+		}
+		else if (vis[u]) {
+			minTime[inx] = min(minTime[inx], minTime[u]);
+		}
+	}
+	if(dfsTime[inx]==minTime[inx]) {
+		while (stk.top() != inx) {
+			f[stk.top()] = inx;
+			v[inx] += v[stk.top()];
+			vis[stk.top()] = false;
+			stk.pop();
+		}
+		vis[inx] = false;
+		stk.pop();
+	}
+}
+int main() {
+//	freopen("../in", "r", stdin);
+//	freopen("../out", "w", stdout);
+	n = read(), m = read();
+	for (ll i = 1; i <= n; i++)
+		v[i] = read(), f[i] = i;
+	while (m--) {
+		ll a = read(), b = read();
+		e[a].push_back(b);
+	}
+	for (ll i = 1; i <= n; i++) {
+		if (!dfsTime[i])
+			tar(i);
+	}
+
+	for (ll i = 1; i <= n; i++) {
+		for (auto u:e[i]) {
+			if (f[i] != f[u]) {
+				el[f[i]].push_back(f[u]);
+				d[f[u]]++;
+			}
+		}
+	}
+
+	queue<ll> que;
+	for (ll i = 1; i <= n; i++) {
+		if (f[i] == i && d[i] == 0) {
+			dp[i] = v[i];
+			que.push(i);
+		}
+	}
+	while (!que.empty()) {
+		ll t = que.front();
+		que.pop();
+		for (auto u:el[t]) {
+			dp[u] = max(dp[u], dp[t] + v[u]);
+			if (--d[u] == 0) {
+				que.push(u);
+			}
+		}
+	}
+	ll ans = 0;
+	for (ll i = 1; i <= n; i++) {
+		ans = max(ans, dp[i]);
+	}
+	pt(ans, 2);
+	return 0;
+}

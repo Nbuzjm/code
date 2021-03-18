@@ -1,0 +1,12 @@
+inline ll read(){
+	char ch;
+	ll f=1,res=0;
+	while((ch=getchar())<'0'||ch>'9')
+		if(ch=='-') f=-1;
+	while(ch>='0'&&ch<='9')
+	{
+		res=(res<<1)+(res<<3)+(ch^48);//注意位运算的优先级别
+		ch=getchar();
+	}
+	return f*res;
+}

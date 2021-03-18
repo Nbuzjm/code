@@ -1,0 +1,52 @@
+二分：
+     {
+        double eps=1e-5;
+        double l=-1e6,r=1e6;
+        while(r-l>eps)   //二分平均值
+        {
+            double mid=(l+r)/2;
+            if(check(mid))  //实数域上的二分
+                l=mid;
+            else
+                r=mid;
+        }
+        cout<<(int)(r*1000);
+三分：
+ll n;
+double s[60000];
+double w[60000];
+inline double cal(double x)
+{
+	double sum=0;
+	for(ll i=0;i<n;i++)
+	{
+		double z=abs(x-s[i]);
+		sum+=z*z*z*w[i];
+	}
+	return sum;
+}
+int main() {
+	freopen("../in", "r", stdin);
+	freopen("../out", "w", stdout);
+	ll t;
+	scanf("%lld",&t);
+	for (ll i = 0; i < t; i++) {
+		cin >> n;
+		for (ll i = 0; i < n; i++)
+			scanf("%lf%lf",&s[i],&w[i]);
+		double eps = 1e-6;
+		double l = -1e7, r = 1e7;
+		while (r - l > eps)
+		{
+			double mid1 = (l + r) / 2;
+			double mid2 = (mid1 + r) / 2;
+			if (cal(mid1) > cal(mid2) + eps)
+				l = mid1;
+			else
+				r = mid2;
+		}
+		cout << "Case #" << i + 1 << ": ";
+		cout << llround(cal(r)) << endl;
+	}
+	return 0;
+}

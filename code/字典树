@@ -1,0 +1,45 @@
+int top=0;
+int a[1000001][27];
+int sum[1000001];
+void insert(char str[])
+{
+	int root=0;
+	for(int i=0;str[i]!='\0';i++)
+	{
+		int x=str[i]-'a';
+		if(!a[root][x])
+		{
+			a[root][x]=++top;
+		}
+		sum[a[root][x]]++;
+		root=a[root][x];
+	}
+}
+int find(char str[])
+{
+	int root=0;
+	for(int i=0;str[i]!='\0';i++)
+	{
+		int x=str[i]-'a';
+		if(!a[root][x]) return 0;
+		root=a[root][x];
+	}
+	return sum[root];
+}
+int main()
+{
+	ios::sync_with_stdio(false);
+	freopen("../in", "r", stdin);
+	freopen("../out", "w", stdout);
+	char str[20];
+	for(int i=0;i<5;i++)
+	{
+		cin>>str;
+		insert(str);
+	}
+	for(int i=0;i<5;i++)
+	{
+		cin>>str;
+		cout<<find(str)<<endl;//找其母串有多少个
+	}
+}

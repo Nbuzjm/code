@@ -1,0 +1,123 @@
+#include<iostream>
+#include<cstdio>
+#include<map>
+#include<cstdlib>
+#include<vector>
+#include<cstring>
+#include<algorithm>
+#include<set>
+#include<queue>
+#include<cmath>
+#include<stack>
+using namespace std;
+typedef long long  ll;
+struct ques
+{
+	ll left;
+	ll right;
+	ll type;
+	ll ans;
+	ll id;
+	ques(ll a,ll b,ll c,ll d)
+	:left(a),right(b),type(c),id(d)
+	{}
+	ques()
+	{}
+}que[400000];
+ll inf[400000];
+ll num[400000]={0};
+ll key;
+ll _div;
+ll cnt;
+ll que_cnt;
+ll que_index;
+ll sum;
+void add(ll index)
+{
+	ll k=inf[index];
+	if(key>=k)
+		sum+=num[key-k];
+	num[k]++;
+}
+void det(ll index)
+{
+	ll k=inf[index];
+	if(key>=k)
+		sum-=num[key-k];
+	num[k]--;
+}
+bool cmp(ques a,ques b)
+{
+	if(a.left/_div==b.left/_div)
+		return a.right<b.right;
+	else
+		return a.left<b.left;
+}
+bool cmp1(ques a,ques b)
+{
+	return a.id<b.id;
+}
+int main()
+{
+	ios::sync_with_stdio(false);
+	//freopen("../in","r",stdin);
+	//freopen("../out","w",stdout);
+	ll a,b,c,d;
+	while(cin>>cnt)
+	{
+		memset(num,0, sizeof(num));
+		memset(que,0, sizeof(que));
+		memset(inf,0, sizeof(inf));
+		cin>>key;
+		for(ll i=0;i<cnt;i++)
+		{
+			cin>>inf[i];
+		}
+		cin>>que_cnt;
+		que_index=0;
+		for(ll i=0;i<que_cnt;i++)
+		{
+			cin>>a>>b>>c>>d;
+			a--;
+			b--;
+			c--;
+			d--;
+			que[que_index++]=ques(a,d,1,i);// 1 -> +
+			que[que_index++]=ques(b+1,c-1,1,i);
+			que[que_index++]=ques(a,c-1,-1,i);
+			que[que_index++]=ques(b+1,d,-1,i);
+		}
+		_div=ll(sqrt(que_index));
+		sort(que,que+que_index,cmp);
+		ll left=0,right=0;
+		sum=0;
+		num[inf[0]]++;
+		for(ll i=0;i<que_index;i++)
+		{
+			if(que[i].right<=que[i].left)
+			{
+				que[i].ans=0;
+				continue;
+			}
+			while(left!=que[i].left||right!=que[i].right)
+			{
+				if(left<que[i].left)
+					det(left++);
+				if(left>que[i].left)
+					add(--left);
+				if(right<que[i].right)
+					add(++right);
+				if(right>que[i].right)
+					det(right--);
+			}
+			que[i].ans=sum;
+		}
+		sort(que,que+que_index,cmp1);
+		for(ll i=0;i<que_index;i+=4)
+		{
+			//cout<<que[i].ans<<endl;
+			cout<<que[i].type*que[i].ans+que[i+1].type*que[i+1].ans+que[i+2].type*que[i+2].ans+que[i+3].type*que[i+3].ans<<endl;
+		}
+	}
+	return 0;
+}

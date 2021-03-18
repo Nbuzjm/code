@@ -1,0 +1,90 @@
+//以后缀开始的最长公共前缀
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+const int maxn = 1e5+5;
+
+char s[maxn];
+int sa[maxn],t[maxn],t2[maxn],c[maxn];
+int Rank[maxn], height[maxn], dp[maxn][20];
+
+void build_sa(int n,int m){
+    int i,*x = t, *y = t2;  //引用指针只是为了后面好交换
+    for(i = 0; i < m; i++) c[i] = 0;
+    for(i = 0; i < n; i++) c[x[i] = s[i]]++;
+    for(i = 1; i < m; i++) c[i] += c[i-1];
+    for(i = n-1; i >= 0; i--) sa[--c[x[i]]] = i;  //sa[i]中表示排名第i的位置是多少
+    for(int k = 1; k <= n; k <<= 1){ //k表示每次基数排序需要比较的长度，因为是按照倍增算法所以每次比较2个关键字
+        int p = 0;
+        //直接利用sa数组排序第二关键字
+        for(i = n-k; i < n; i++) y[p++] = i; //y中存放按第二关键字从小到大排序的位置
+        for(i = 0; i < n; i++) if(sa[i] >= k) y[p++] = sa[i]-k;
+        //基数排序第一关键字
+        for(i = 0; i < m; i++) c[i] = 0;
+        for(i = 0; i < n; i++) c[x[y[i]]]++;
+        for(i = 0; i < m; i++) c[i] += c[i-1];
+        for(i = n-1; i >= 0; i--) sa[--c[x[y[i]]]] = y[i];   //i从大到小是为了保证相同字符的情况下默认靠前的更小一些
+        swap(x, y);  //这里只用交换指针即可
+        p = 1; x[sa[0]] = 0; //p表示rank值不同的字符串的数量，如果达到n表示字符串的所有关系都找出来了
+        for(i = 1; i < n; i++)  //重新计算x的值
+            x[sa[i]] = y[sa[i-1]] == y[sa[i]] && y[sa[i-1]+k] == y[sa[i]+k]?p-1:p++;
+        if(p >= n) break;
+        m = p;
+    }
+}
+
+void getHeight(int n){
+    int i,j,k = 0;
+    for(i = 0; i < n; i++) Rank[sa[i]] = i; //求出rank值，利用rank和sa是相反的
+    for(i = 0; i < n; i++){
+        if(k) k--; //利用h[i] >= h[i-1]+1这个性质，先求出前面的后面的就可以由前面推出
+        j = sa[Rank[i]-1];
+        while(s[i+k] == s[j+k]) k++;
+        height[Rank[i]] = k;
+    }
+}
+
+void ST_build(int n){
+    for(int i = 0; i < n; i++){
+        dp[i][0] = height[i];
+        printf("height[%d] = %d\n", i, height[i]);
+    }
+    for(int j = 1; (1<<j) <= n; j++)
+        for(int i = 0; (i+(1<<j)-1) <= n; i++)
+            dp[i][j] = min(dp[i][j-1], dp[i+(1<<(j-1))][j-1]);
+}
+
+int query(int i, int j){  //
+    int l = min(Rank[i], Rank[j]);
+    int r = max(Rank[i], Rank[j]);
+    ++l;
+    printf("l = %d, r = %d\n", l, r);
+    int cnt = log2(r-l+1), len  = 1<<cnt;
+    return min(dp[l][cnt], dp[r-len+1][cnt]);
+}
+
+int main(){
+    int T;
+    scanf("%d", &T);
+    while(T--){
+        scanf("%s", s);
+        int len = strlen(s);
+        build_sa(len+1, 130);  //len+1是为了添加一个由字符串结束符为后缀的字符串
+        getHeight(len+1);
+        ST_build(len+1);
+        int q, l, r;
+        scanf("%d", &q);
+        while(q--){   //求从l开始的后缀和从r开始的后缀的最长公共前缀,注意下边从0开始
+            scanf("%d%d", &l, &r);
+            if(l == r){
+                printf("%d\n", len-l);
+                continue;
+            }
+            printf("%d\n", query(l, r));
+        }
+    }
+    return 0;
+}

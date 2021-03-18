@@ -1,0 +1,34 @@
+const int INF = 999999999999;
+const int maxn = 1e6+10;
+ll dis[maxn];
+typedef pair<ll,ll> P;
+vector<P> E[maxn]; //邻接表存图
+void Djiskra(ll s){//s为起点
+    memset(dis,INF,sizeof(dis));
+    dis[s] = 0;
+    priority_queue<P> que;  //优先队列优化
+    que.push(P(0,s));  //这里的第一个数代表 后面的数到起点的距离
+    while(!que.empty()){
+        P p = que.top(); que.pop();
+        int v = p.second;  //获取距离最短的点
+        for(int i = 0;i < E[v].size();i++){  //邻接表遍历
+            P e = E[v][i];
+            if(dis[e.first] > dis[v] + e.second){
+                dis[e.first] = dis[v] + e.second;
+                que.push(P(-dis[e.first],e.first));  //这里由于优先队列默认由大到小排列，所以我存负数就可以由小到大
+            }
+        }
+    }
+    //dis INF不可到，
+}
+int main(){
+    while(cin >> n >> m >> s){     //n为点数
+        int x,y,z;
+        for(int i = 0;i < m;i++){
+            cin >> x >> y >> z;
+            E[x].push_back(P(y,z));//加边 z为权值。
+        }
+       Djiskra();
+    }
+    return 0;
+}

@@ -1,0 +1,201 @@
+#include<bits/stdc++.h>
+using namespace std;
+#define Maxn 500000
+typedef long long ll;
+struct edge{
+	ll to,next;
+}e[Maxn];
+ll n,m,s,ecnt;
+ll head[Maxn],dep[Maxn],siz[Maxn];
+ll son[Maxn],top[Maxn],f[Maxn];
+void add(ll x,ll y)
+{
+	e[++ecnt].to=y;
+	e[ecnt].next=head[x];
+	head[x]=ecnt;
+}
+void D1(ll x) {
+	siz[x] = 1;
+	dep[x] = dep[f[x]] + 1;
+	for (ll i = head[x]; i; i = e[i].next) {
+		ll dd = e[i].to;
+		if (dd == f[x])continue;
+		f[dd] = x;
+		D1(dd);
+		siz[x] += siz[dd];
+		if (!son[x] || siz[son[x]] < siz[dd])
+			son[x] = dd;
+	}
+}
+void D2(ll x,ll tv) {
+	top[x] = tv;
+	if (son[x])D2(son[x], tv);
+	for (ll i = head[x]; i; i = e[i].next) {
+		ll dd = e[i].to;
+		if (dd == f[x] || dd == son[x])continue;
+		D2(dd, dd);
+	}
+}
+int main() {
+	ios::sync_with_stdio(false);
+	freopen("../in", "r", stdin);
+	//freopen("../out", "w", stdout);
+	cin>>n>>m;
+	s=1;
+	for (ll i = 1; i < n; ++i) {
+		ll x, y;
+		cin >> x >> y;
+		add(x, y);
+		add(y, x);
+	}
+	D1(s);
+	D2(s, s);
+	for (ll i = 1; i <= m; ++i) {
+		ll x,y,c,a,b;
+		cin>>a>>b>>c;
+		x=a,y=b;
+		while (top[x] != top[y]) {
+			if (dep[top[x]] >= dep[top[y]])x = f[top[x]];
+			else y = f[top[y]];
+		}
+		ll lca=dep[x] < dep[y] ? x : y;
+	}
+	return 0;
+}
+
+
+#include<bits/stdc++.h>
+using namespace std;
+struct zzz {
+    int t, nex;
+}e[500010 << 1]; int head[500010], tot;
+void add(int x, int y) {
+	e[++tot].t = y;
+	e[tot].nex = head[x];
+	head[x] = tot;
+}
+int depth[500001], fa[500001][22], lg[500001];
+void dfs(int now, int fath) {
+	fa[now][0] = fath; depth[now] = depth[fath] + 1;
+	for(int i = 1; i <= lg[depth[now]]; ++i)
+		fa[now][i] = fa[fa[now][i-1]][i-1];
+	for(int i = head[now]; i; i = e[i].nex)
+		if(e[i].t != fath) dfs(e[i].t, now);
+}
+int LCA(int x, int y) {
+	if(depth[x] < depth[y]) swap(x, y);
+	while(depth[x] > depth[y])
+		x = fa[x][lg[depth[x]-depth[y]] - 1];
+	if(x == y) return x;
+	for(int k = lg[depth[x]] - 1; k >= 0; --k)
+		if(fa[x][k] != fa[y][k])
+			x = fa[x][k], y = fa[y][k];
+	return fa[x][0];
+}
+int main() {
+	int n, m, s; scanf("%d%d%d", &n, &m, &s);
+	for(int i = 1; i <= n-1; ++i) {
+		int x, y; scanf("%d%d", &x, &y);
+		add(x, y); add(y, x);
+	}
+	for(int i = 1; i <= n; ++i)
+		lg[i] = lg[i-1] + (1 << lg[i-1] == i);
+	dfs(s, 0);
+	for(int i = 1; i <= m; ++i) {
+		int x, y; scanf("%d%d",&x, &y);
+		printf("%d\n", LCA(x, y));
+	}
+	return 0;
+}
+
+#include<bits/stdc++.h>
+using namespace std;
+template<typename Type>inline void read(Type &xx)
+{
+    Type f=1;char ch;xx=0;
+    for(ch=getchar();ch<'0'||ch>'9';ch=getchar())if(ch=='-')f=-1;
+    for(;ch>='0'&&ch<='9';ch=getchar())xx=xx*10+ch-'0';
+    xx*=f;
+}
+struct edge
+{
+    int to,next;
+}e[1000001];//边的储存
+struct questions
+{
+    int to,next,same,num;
+    bool flag;
+    questions(){flag=false;}
+}q[1000001];//询问的储存，flag=false表示还没回答，num表示是第几个询问，same储存与这个询问相同的询问序号。
+bool b[500001];
+int head[500001],que[500001],father[500001];
+int n,m,s,nume=0,numq=0,ans[500001];
+void add_edge(int x,int y)
+{
+    e[++nume].to=y;
+    e[nume].next=head[x];
+    head[x]=nume;
+    e[++nume].to=x;
+    e[nume].next=head[y];
+    head[y]=nume;
+}
+void add_que(int x,int y,int k)
+{
+    q[++numq].to=y;
+    q[numq].same=numq+1;
+    q[numq].next=que[x];
+    q[numq].num=k;
+    que[x]=numq;
+    q[++numq].to=x;//询问要储存到两个点的链表序列里，删的时候也要一起删
+    q[numq].same=numq-1;
+    q[numq].next=que[y];
+    q[numq].num=k;
+    que[y]=numq;
+}
+int find(int x)//并查集
+{
+    if(father[x]!=x)father[x]=find(father[x]);
+    return father[x];
+}
+void unionn(int x,int y)//并查集
+{
+    father[find(y)]=find(x);
+}
+void LCA(int point,int f)//point是当前搜索节点，f是它的父亲
+{
+    for(int i=head[point];i!=0;i=e[i].next)//遍历与point相连的所有边
+        if(e[i].to!=f&&!b[e[i].to])
+        {
+            LCA(e[i].to,point);
+            unionn(point,e[i].to);//合并
+            b[e[i].to]=1;
+        }
+    for(int i=que[point];i!=0;i=q[i].next)//遍历与point相关的询问
+        if(!q[i].flag&&b[q[i].to])//如果另一个点遍历过了并且该询问没有回答过
+        {
+            ans[q[i].num]=find(q[i].to);//记录下答案
+            q[i].flag=1;
+            q[q[i].same].flag=1;//把两个点上的询问都去掉
+        }
+}
+int main()
+{
+    read(n);read(m);read(s);
+    for(int i=1,x,y;i<=n-1;i++)
+    {
+        father[i]=i;
+        read(x);read(y);
+        add_edge(x,y);
+    }
+    father[n]=n;
+    for(int i=1,x,y;i<=m;i++)
+    {
+        read(x);read(y);
+        add_que(x,y,i);
+    }
+    LCA(s,0);
+    for(int i=1;i<=m;i++)
+        printf("%d\n",ans[i]);
+    return 0;
+}
+//任意两点间的距离为两个子节点到根的距离和减去最近祖先到根的距离的2倍

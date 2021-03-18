@@ -1,0 +1,41 @@
+扩欧：
+求：𝐺𝑐𝑑(𝑎,𝑏)=𝑎𝑥+𝑏𝑦
+int exgcd(int a,int b,int &x,int &y)//扩展欧几里得算法
+{
+    if(b==0)
+    {
+        x=1;y=0;
+        return a;  //到达递归边界开始向上一层返回
+    }
+    int r=exgcd(b,a%b,x,y);
+    int temp=y;    //把x y变成上一层的
+    y=x-(a/b)*y;
+    x=temp;
+    return r;     //得到a b的最大公因数
+}
+
+快速乘：
+inline ll ksc(ll x,ll y,ll p){//计算x乘y的积
+	ll res=0;//加法初始化
+	 while(y){
+		 if(y&1)res=(res+x)%p;//模仿二进制
+		 x=(x<<1)%p;
+		y>>=1;//将x不断乘2达到二进制
+	}
+	return res;
+}
+时间复杂度：𝑂(log⁡𝑛)
+
+void exgcd(ll a,ll b,ll &x,ll &y)
+{
+    if(!b){x=1;y=0;return;}
+    exgcd(b,a%b,x,y);
+    ll X=x;
+    x=y; y=X-a/b*y;
+}
+ll INV(ll a,ll mod)
+{
+    ll x,y;
+    exgcd(a,mod,x,y);
+    return (x+mod)%mod;
+}

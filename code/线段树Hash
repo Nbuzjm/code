@@ -1,0 +1,109 @@
+
+#pragma GCC optimize(3)
+#include <bits/stdc++.h>
+#define debug(x) cout<<#x<<":"<<x<<endl;
+#define _CRT_SECURE_NO_WARNINGS
+typedef  long long ll;
+using namespace std;
+#define rep(i,j,n) for(ll i=j;i<=n;i++)
+typedef unsigned long long ull;
+typedef unsigned short us;
+const ll INF= 1e16;
+const ll maxn = 3e6+7;
+const ll mod = 1e9+7;
+const ll up = 1e13;
+const ll base= 10;
+inline bool read(ll &num)
+{char in;bool IsN=false;
+	in=getchar();if(in==EOF) return false;while(in!='-'&&(in<'0'||in>'9')) in=getchar();if(in=='-'){ IsN=true;num=0;}else num=in-'0';while(in=getchar(),in>='0'&&in<='9'){num*=10,num+=in-'0';}if(IsN) num=-num;return true;}
+ll n,m,p;
+ll sum[maxn],num[maxn],qb[maxn];
+ll lazy[maxn];
+void push(int k,int l,int r){
+	int mid = (l+r)/2;
+	sum[k] = (sum[k<<1]*qb[r-mid] + sum[k<<1|1])%mod;
+}
+void down(int k){
+	if(lazy[k]){
+		lazy[k<<1] += lazy[k];
+		lazy[k<<1|1] += lazy[k];
+		lazy[k] = 0;
+	}
+}
+void Modify(int k,int l,int r,int x,int y){
+	if(x<=l&&y>=r){
+		lazy[k]++;
+		return;
+	}
+	down(k);
+	int mid = (l+r)/2;
+	if(x<=mid) Modify(k<<1,l,mid,x,y);
+	if(y>mid) Modify(k<<1|1,mid+1,r,x,y);
+}
+ll Find(int k,int l,int r,int pos){
+	if(l == r) return lazy[k];
+	int mid = (l+r)/2;
+	down(k);
+	if(pos<=mid) return Find(k<<1,l,mid,pos);
+	return Find(k<<1|1,mid+1,r,pos);
+}
+void build(int k,int l,int r){
+	if(l == r){
+		sum[k] = (num[l]-num[l-1]%65536+65536)%65536;
+		return;
+	}
+	int mid = (l+r)/2;
+	build(k<<1,l,mid);
+	build(k<<1|1,mid+1,r);
+	push(k,l,r);
+}
+void ModifyOne(int k,int l,int r,int pos,int w){
+	if(l == r){
+		sum[k] = (sum[k] + w+65536)%65536;
+		return ;
+	}
+	int mid = (l+r)/2;
+	if(pos<=mid) ModifyOne(k<<1,l,mid,pos,w);
+	else ModifyOne(k<<1|1,mid+1,r,pos,w);
+	push(k,l,r);
+}
+ll Query(int k,int l,int r,int x,int y){
+	if(x<=l&&y>=r) return (sum[k]*qb[y-r])%mod;
+	int mid = (l+r)/2;
+	ll ans = 0;
+	if(x<=mid) ans += Query(k<<1,l,mid,x,y);
+	if(y>mid) ans += Query(k<<1|1,mid+1,r,x,y);
+	return ans%mod;
+}
+int main(){
+
+	read(n);read(m);
+	qb[0] = 1;
+	for(int i=1;i<=n;i++) qb[i] = (qb[i-1]*base)%mod;
+	for(int i=1;i<=n;i++) read(num[i]);
+	build(1,1,n);
+	for(int i=1;i<=m;i++){
+		int op,x,y,z;
+		scanf("%d",&op);
+		if(op == 1){
+			scanf("%d%d",&x,&y);
+			ModifyOne(1,1,n,x,1);
+			if(y+1<=n) ModifyOne(1,1,n,y+1,-1);
+			Modify(1,1,n,x,y);
+		}else{
+			scanf("%d%d%d",&x,&y,&z);
+			if((num[x]+Find(1,1,n,x))%65536 == (num[y]+Find(1,1,n,y))%65536){
+				ll tempx = 0;
+				if(x+1<=x+z-1) tempx = Query(1,1,n,x+1,x+z-1);
+				ll tempy = 0;
+				if(y+1<=y+z-1) tempy = Query(1,1,n,y+1,y+z-1);
+				printf("%s\n",tempx == tempy?"yes":"no");
+			}
+			else printf("no\n");
+		}
+	}
+	return 0;
+}
+/***
+***/
+

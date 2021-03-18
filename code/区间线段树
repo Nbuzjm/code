@@ -1,0 +1,111 @@
+#include<bits/stdc++>
+using namespace std;
+typedef long long  ll;
+ll camp[1000000];
+ll data[300000];
+ll down[1000000];
+void build(ll index,ll left,ll right)
+{
+	if(left==right)
+	{
+		camp[index]=data[left];
+		return;
+	}
+	ll mid=(left+right)/2;
+	build(2*index,left,mid);
+	build(2*index+1,mid+1,right);
+	camp[index]=camp[2*index]+camp[2*index+1];
+}
+void up_data(ll index,ll left,ll right,ll key,ll value)
+{
+	if(left==right)
+	{
+		camp[index]+=value;
+		return;
+	}
+	ll mid=(left+right)/2;
+	if(key<=mid)
+		up_data(index*2,left,mid,key,value);
+	else
+		up_data(index*2+1,mid+1,right,key,value);
+	camp[index]=camp[2*index]+camp[2*index+1];
+}
+void push_down(ll index,ll left,ll right,ll value)
+{
+	if(down[index]!=0)
+	{
+		ll mid=(left+right)/2;
+		camp[index*2]+=(mid-left+1)*value;
+		camp[index*2+1]+=(right-mid)*value;
+		down[index*2]+=down[index];
+		down[index*2+1]+=down[index];
+		down[index]=0;
+	}
+}
+void up_datas(ll index,ll left,ll right,ll find_left,ll find_right,ll value)
+{
+	if(left>=find_left&&right<=find_right)
+	{
+		camp[index]+=(right-left+1)*value;
+		down[index]+=value;
+		//cout<<index<<' '<<left<<' '<<right<<' '<<down[index]<<endl;
+		return;
+	}
+	push_down(index,left,right,down[index]);
+	//cout<<index<<' '<<left<<' '<<right<<' '<<down[index]<<endl;
+	ll mid=(left+right)/2;
+	if(mid>=find_left)
+		up_datas(index*2,left,mid,find_left,find_right,value);
+	if(mid<find_right)
+		up_datas(index*2+1,mid+1,right,find_left,find_right,value);
+	camp[index]=camp[2*index]+camp[2*index+1];
+}
+ll myfind(ll index,ll left,ll right,ll find_left,ll find_right)
+{
+	ll ans = 0;
+	if (left >= find_left && right <= find_right)
+		return camp[index];
+	push_down(index, left, right, down[index]);
+	ll mid = (left + right) / 2;
+	if (mid >= find_left)
+		ans += myfind(index * 2, left, mid, find_left, find_right);
+	if (mid < find_right)
+		ans += myfind(index * 2 + 1, mid + 1, right, find_left, find_right);
+	return ans;
+}
+int main()
+{
+	//ios::sync_with_stdio(false);
+	//freopen("../in","r",stdin);
+	//freopen("../out","w",stdout);
+	ll a,b;
+	scanf("%lld%lld",&a,&b);
+	{
+		memset(down,0, sizeof(down));
+		memset(camp,0, sizeof(camp));
+		for(ll i=1;i<=a;i++)
+			scanf("%lld",&data[i]);
+		build(1,1,a);
+		ll t1,t2,t3;
+		while(b--)
+		{
+			char t[10];
+			scanf("%s",t);
+			if(t[0]=='Q')
+			{
+				scanf("%lld%lld",&t1,&t2);
+				printf("%lld\n",myfind(1,1,a,t1,t2));
+			}
+			else if(t[0]=='C')
+			{
+				scanf("%lld%lld%lld",&t1,&t2,&t3);
+				up_datas(1, 1, a, t1, t2, t3);
+			}
+			//for(ll i=1;i<=25;i++)
+			//	cout<<i<<':'<<camp[i]<<endl;
+			//cout<<endl;
+		}
+	}
+	return 0;
+}
+

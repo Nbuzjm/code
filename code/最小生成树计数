@@ -1,0 +1,103 @@
+struct Edge {
+    int x,y;
+    int dis;
+    bool operator < (const Edge &rhs) const {
+        return dis<rhs.dis;
+    }
+} edge[N],tr[N];
+int n,m;
+int father[N];
+int G[N][N];
+int tot,bel[N],val[N];
+int Find(int x) {
+    if(father[x]!=x)
+        return father[x]=Find(father[x]);
+    return x;
+}
+int Gauss(int n) {
+    int res=1;
+    for(int i=1; i<=n; i++) {
+        for(int k=i+1; k<=n; k++) {
+            while(G[k][i]) {
+                int d=G[i][i]/G[k][i];
+                for(int j=i; j<=n; j++)
+                    G[i][j]=(G[i][j]-1LL*d*G[k][j]%MOD+MOD)%MOD;
+                swap(G[i],G[k]);
+                res=-res;
+            }
+        }
+        res=1LL*res*G[i][i]%MOD,res=(res+MOD)%MOD;
+    }
+    return res;
+}
+int Kruskal() {
+    sort(edge+1,edge+m+1);
+    for(int i=1; i<=n; i++)
+        father[i]=i;
+    int cnt=0;
+    for(int i=1; i<=m; i++) {
+        int fu=Find(edge[i].x);
+        int fv=Find(edge[i].y);
+        if(fu==fv)
+            continue;
+        father[fu]=fv,tr[++cnt]=edge[i];
+        if(edge[i].dis!=val[tot])
+            val[++tot]=edge[i].dis;
+    }
+    return cnt;
+}
+void addTreeEdge(int v) {
+    for(int i=1; i<n&&tr[i].dis!=v; i++){
+        int x=tr[i].x;
+        int y=tr[i].y;
+        father[Find(x)]=Find(y);
+    }
+    for(int i=n-1; i&&tr[i].dis!=v; i--){
+        int x=tr[i].x;
+        int y=tr[i].y;
+        father[Find(x)]=Find(y);
+    }
+}
+void rebuild(int v) {
+    memset(G,0,sizeof(G));
+    for(int i=1; i<=m; i++){
+        if(edge[i].dis==v){
+            int x=bel[edge[i].x];
+            int y=bel[edge[i].y];
+            G[x][y]--;
+            G[y][x]--;
+            G[x][x]++;
+            G[y][y]++;
+        }
+    }
+}
+int main() {
+    scanf("%d%d",&n,&m);
+    for(int i=1; i<=m; i++)
+        scanf("%d%d%d",&edge[i].x,&edge[i].y,&edge[i].dis);
+
+    int cnt=Kruskal();
+    if(cnt!=n-1) {
+        printf("0\n");
+    }
+    else{
+        int res=1;
+        for(int i=1; i<=tot; i++) {
+            for(int i=1; i<=n; i++)
+                father[i]=i;
+
+            addTreeEdge(val[i]);
+
+            int blo=0;
+            for(int i=1; i<=n; i++)
+                if(Find(i)==i)
+                    bel[i]=++blo;
+            for(int i=1; i<=n; i++)
+                bel[i]=bel[Find(i)];
+
+            rebuild(val[i]);
+            res=1LL*res*Gauss(blo-1)%MOD;
+        }
+        printf("%d\n",res);
+    }
+    return 0;

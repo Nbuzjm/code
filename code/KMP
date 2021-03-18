@@ -1,0 +1,188 @@
+void kmp_next(char *s)
+{
+    int len = strlen(s);
+    next[0] = -1;
+    int k = -1;
+    for(int i = 1; i < len; i ++) {
+        while(k > -1 && s[k+1] != s[i]) {
+            k = next[k];
+        }
+        if(s[k+1] == s[i]) {
+            k ++;
+        }
+        next[i] = k;
+    }
+}
+
+{
+for(ll i=0;s1[i]!='\0';i++)
+		cout<<i-Next[i]<<endl;
+	从[0,i]的最少循环节长度。
+}
+void kmp1(char *s1, char *s2)//查找S1中有无S2
+{
+    int len1 = strlen(s1);
+    int len2 = strlen(s2);
+    int idx = 0; //s2中匹配的位置
+    kmp_next(s2);
+    for(int i = 0; i < len1; i ++) {
+        if(s1[i] == s2[idx]) {
+            idx ++;
+        }else {
+            if(idx > 0) { //此时不匹配之前有匹配的
+                idx = next[idx-1] + 1;
+                i--; //避免多移一位
+            }else idx = 0;
+        }
+        if(idx == len2) { //完全匹配
+            idx = next[idx-1] + 1;
+            a[cnt ++] = i-len2+1;
+        }
+    }
+}
+
+author:zzz
+
+#include<bits/stdc++.h>
+using namespace std;
+#define Maxn 10100000
+typedef long long ll;
+ll nextInx[Maxn];
+string s;
+string M;
+void getNext(){
+	ll inx=-1;//初始位置为-1
+	nextInx[0]=-1;//第一个位置为-1
+	for(ll i=1;i<s.size();i++) {//遍历每个位置
+		while (inx != -1 && s[i] != s[inx]) {//如果是-1，无论是否相等，next值均为0。
+			inx = nextInx[inx];//对于其他值，如果对应的位置不相等，利用它的next，可到达更短的next，然后再来判断是否相等。
+		}
+		if (inx == -1) {
+			inx++;
+		}
+		if(s[inx] == s[i]){
+			inx++;
+		}
+		nextInx[i + 1] = inx;
+	}
+}
+
+void getPair() {
+	ll j = 0;
+	for (ll i = 0; i < M.size(); i++) {
+		while (true) {
+			if (M[i] == s[j]) {
+				j++;
+				break;
+			}
+			else
+				j = nextInx[j];
+			if (j == -1 || j == s.size()) {
+				break;
+			}
+		}
+		if (j == -1 || j == s.size()) {
+			if (j == s.size()) {
+				cout << i - s.size()+2<<endl;
+//				i -= s.size() - 1;
+				j=nextInx[s.size()-1]+1;//退一个位置，但是算作匹配成功
+			}
+			else
+				j=0;
+		}
+	}
+}
+
+auto main()->int
+{
+	ios::sync_with_stdio(false);
+	freopen("../in", "r", stdin);
+//	freopen("../out", "w", stdout);
+	cin>>M>>s;
+	getNext();
+	getPair();
+	for(ll i=0;i<s.size();i++) {
+		if (i + 1 != s.size())
+			cout << nextInx[i+1] << ' ';
+		else
+			cout << nextInx[i+1] << endl;
+	}
+	return 0;
+}
+
+exKmp
+#include<cstdio>
+#include<cstring>
+//using namespace std;
+#define Maxn 20100000
+typedef int ll;
+//extend Kmp
+char mainS[Maxn];
+char subS[Maxn];
+ll subSameLen[Maxn]={0};
+ll mainSameLen[Maxn]={0};
+//string mainS;
+//string subS;
+void getSub(){
+	subSameLen[0]=strlen(subS);
+	ll inx=0;
+	ll po=1;
+	while(subS[inx+1]!='\0'&&subS[inx]==subS[inx+1]) {
+		subSameLen[1]++;
+		inx++;
+	}
+	for(ll i=2;subS[i]!='\0';i++){
+		if(po+subSameLen[po]>subSameLen[i-po]+i)
+			subSameLen[i]=subSameLen[i-po];
+		else{
+			inx=subSameLen[po]+po-i;
+			if(inx<0)inx=0;
+			while(subS[inx+1]!='\0'&&subS[inx]==subS[i+inx])
+				inx++;
+			subSameLen[i]=inx;
+			po=i;
+		}
+	}
+}
+void getMain(){
+	ll inx=0;
+	ll po=0;
+	while(subS[inx]!='\0'&&mainS[inx]!='\0'&&subS[inx]==mainS[inx]) {
+		inx++;
+		mainSameLen[0]++;
+	}
+	for(ll i=1;mainS[i]!='\0';i++){
+		if(po+mainSameLen[po]>subSameLen[i-po]+i)
+			mainSameLen[i]=subSameLen[i-po];
+		else{
+			inx=mainSameLen[po]+po-i;
+			if(inx<0)inx=0;
+			while(mainS[i+inx]!='\0'&&subS[inx]==mainS[i+inx])
+				inx++;
+			mainSameLen[i]=inx;
+			po=i;
+		}
+	}
+}
+auto main()->int
+{
+//	ios::sync_with_stdio(false);
+	freopen("../in", "r", stdin);
+	//freopen("../out", "w", stdout);
+	gets(mainS);
+	gets(subS);
+//	cout<<subS<<endl;
+	getSub();
+	getMain();
+	long long ans1=0,ans2=0;
+	for(ll i=0;subS[i]!='\0';i++) {
+//		cout<<subSameLen[i]<<endl;
+		ans1 ^= 1ll*(subSameLen[i] + 1) * (i + 1);
+	}
+//	cout<<ans1<<endl;
+	for(ll j=0;mainS[j]!='\0';j++)
+		ans2^=1ll*(1+mainSameLen[j])*(j+1);
+//	cout<<ans2<<endl;
+	printf("%lld\n%lld\n",ans1,ans2);
+	return 0;
+}

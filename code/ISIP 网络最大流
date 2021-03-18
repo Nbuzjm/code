@@ -1,0 +1,271 @@
+int n,m,k;
+struct edge {
+    int from;
+    int to;
+    int flow;
+    int cap;
+    int nxt;
+    edge(int f, int t, int c, int n) : from(f), to(t), cap(c), nxt(n) {
+        flow = 0;
+    }
+};
+vector<edge> edges;
+int egs[1005];
+void addedge(int f,int t,int c) {
+    edges.emplace_back(f, t, c, egs[f]);
+    egs[f] = edges.size() - 1;
+    edges.emplace_back(t, f, 0, egs[t]);
+    egs[t] = edges.size() - 1;
+}
+int dis[1005];
+bool vis[1005];
+bool bfs(int s,int t) {
+    memset(vis, 0, sizeof vis);
+    memset(dis, 0, sizeof dis);
+    queue<int> qq;
+    qq.push(t);
+    vis[t] = true;
+    dis[t] = 0;
+    while (!qq.empty()) {
+        int now = qq.front();
+        qq.pop();
+        for (int i = egs[now]; i != -1; i = edges[i].nxt) {
+            if (!vis[edges[i].to] && edges[i].cap - edges[i].flow > 0) {
+                dis[edges[i].to] = dis[now] + 1;
+                vis[edges[i].to] = true;
+                qq.push(edges[i].to);
+            }
+
+        }
+
+    }
+    if (dis[t] != 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+int pre[1005];
+int aug(int s,int t) {
+    int now = t;
+    int greencap = 0x3f3f3f3f;
+    while (now != s) {
+        greencap = min(greencap, edges[pre[now]].cap - edges[pre[now]].flow);
+        now = edges[pre[now]].from;
+    }
+    now = t;
+    while (now != s) {
+        edges[pre[now]].flow += greencap;
+        edges[pre[now] ^ 1].flow -= greencap;
+        now = edges[pre[now]].from;
+    }
+    return greencap;
+}
+int num[1005];
+int cur[1005];
+int isap(int s,int t) {
+    bfs(s, t);
+    memset(num, 0, sizeof num);
+    for (int i = 0; i <= n + m + 2; i++) {
+        cur[i] = egs[i];
+        num[dis[i]]++;
+    }
+    int now = s;
+    int maxflow = 0;
+    while (dis[s] < n + m + 2) {
+        if (now == t) {
+            maxflow += aug(s, t);
+            now = s;
+        }
+        bool isoperated = false;
+        for (int i = cur[now]; i != -1; i = edges[i].nxt) {
+            if (edges[i].flow < edges[i].cap && dis[edges[i].from] == dis[edges[i].to] + 1) {
+                cur[now] = i;
+                pre[edges[i].to] = i;
+                now = edges[i].to;
+                isoperated = true;
+                break;
+            }
+        }
+        if (!isoperated) {
+            int miner = n + m + 2;
+            for (int i = egs[now]; i != -1; i = edges[i].nxt) {
+                if (edges[i].flow < edges[i].cap) {
+                    miner = min(miner, dis[edges[i].to] + 1);
+                }
+            }
+            if (--num[dis[now]] < 0) {
+                break;
+            }
+            dis[now] = miner;
+            num[dis[now]]++;
+            cur[now] = egs[now];
+            if (now != s)now = edges[pre[now]].from;
+        }
+    }
+    return maxflow;
+}
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    while(cin>>n>>m) {// n个点，m条边
+        memset(egs, -1, sizeof egs);
+        memset(pre,-1,sizeof pre);
+        edges.clear();
+        加边：addedge(i, j, w);
+        输出：cout<<isap(begin,end)<<endl;
+        return 0;
+}
+Standard网络流：
+#include<cstdio>
+#include<cstring>
+#include<algorithm>
+#include<queue>
+using namespace std;
+const int INF=0x7ffffff;
+
+queue <int> q;
+int n,m,x,y,s,t,g[201][201],pre[201],flow[201],maxflow;
+//g邻接矩阵存图，pre增广路径中每个点的前驱，flow源点到这个点的流量
+
+inline int bfs(int s,int t)
+{
+    while (!q.empty()) q.pop();//清空
+    for (int i=1; i<=n; i++) pre[i]=-1;//前缀
+    pre[s]=0;//修改源的前缀
+    q.push(s);
+    flow[s]=INF;//流量无穷大
+    while (!q.empty())
+    {
+        int x=q.front();//前面开始
+        q.pop();//到达终点直接结束
+        if (x==t) break;
+        for (int i=1; i<=n; i++)
+          //EK一次只找一个增广路
+          if (g[x][i]>0 && pre[i]==-1)//遍历所有点，可走，并且之前没有被用过
+          {
+            pre[i]=x;//更新前缀
+            flow[i]=min(flow[x],g[x][i]);//取可用流和前方流中的最小值
+            q.push(i);
+          }
+    }
+    if (pre[t]==-1) return -1;//没找到，就结束
+    else return flow[t];
+}
+
+//increase为增广的流量
+void EK(int s,int t)
+{
+    int increase=0;
+    while ((increase=bfs(s,t))!=-1)//这里的括号加错了！Tle
+    {//迭代
+        int k=t;
+        while (k!=s)//如果不是-1，就从前面寻找增广路径
+        {
+            int last=pre[k];//从后往前找路径
+            g[last][k]-=increase;
+            g[k][last]+=increase;
+            k=last;
+        }
+        maxflow+=increase;//最大流加上
+    }
+}
+
+int main()
+{
+    scanf("%d%d",&m,&n);
+    for (int i=1; i<=m; i++)
+    {
+        int z;
+        scanf("%d%d%d",&x,&y,&z);
+        g[x][y]+=z;//此处不可直接输入，要+=
+    }
+    EK(1,n);
+    printf("%d",maxflow);
+    return 0;
+}
+
+author:zzz
+#include<bits/stdc++.h>
+using namespace std;
+#define Maxn 250000
+typedef int ll;
+struct Edge{
+	ll from;
+	ll to;
+	ll cap;
+	ll flow;
+	ll nextInx;
+}e[Maxn];
+ll cnt=0;
+ll m,n,st,ed;
+ll head[Maxn];
+void add(ll form,ll to,ll cap) {
+	e[cnt].from=form;
+	e[cnt].to = to;
+	e[cnt].cap = cap;
+	e[cnt].nextInx=head[form];
+	head[form]=cnt;
+	e[cnt++].flow = 0;
+	e[cnt].from=to;
+	e[cnt].to = form;
+	e[cnt].cap = cap;
+	e[cnt].nextInx=head[to];
+	head[to]=cnt;
+	e[cnt++].flow = cap;
+}
+ll maxFlow=0;
+ll pre[Maxn];
+ll flow[Maxn];
+auto bfs()->bool{
+	memset(pre,-1, sizeof(pre));
+	memset(flow,0x3f, sizeof(flow));
+	pre[st]=st;
+	queue<ll>op;
+	op.push(st);
+	ll t;
+	while(!op.empty()){
+		t=op.front();
+		op.pop();
+		if(t==ed) {
+			return flow[t] > 0 && flow[t] != flow[0];
+		}
+		for(ll i=head[t];i!=-1;i=e[i].nextInx){
+			if(pre[e[i].to]==-1&&e[i].cap-e[i].flow>0){
+				flow[e[i].to]=min(e[i].cap-e[i].flow,flow[t]);
+				pre[e[i].to]=i;
+				op.push(e[i].to);
+			}
+		}
+	}
+	return false;
+}
+void solve() {
+	while (bfs()){
+		maxFlow+=flow[ed];
+		ll inx=ed;
+		while(inx!=st){
+			e[pre[inx]].flow+=flow[ed];
+			e[pre[inx]^1].flow-=flow[ed];
+			inx=e[pre[inx]].from;
+		}
+//		for(ll i=0;i<cnt;i++)
+//			cout<<e[i].from<<':'<<e[i].to<<'-'<<e[i].cap<<' '<<e[i].flow<<endl;
+	}
+}
+auto main()->int
+{
+	ios::sync_with_stdio(false);
+	freopen("../in", "r", stdin);
+	//freopen("../out", "w", stdout);
+	memset(head,-1, sizeof(head));
+	cin>>m>>n>>st>>ed;
+	ll a,b,c;
+	for(ll i=0;i<n;i++){
+		cin>>a>>b>>c;
+		add(a,b,c);
+	}
+	solve();
+	cout<<maxFlow<<endl;
+	return 0;
+}

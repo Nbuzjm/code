@@ -1,0 +1,45 @@
+#include<bits/stdc++.h>
+#define Maxn 100000
+using namespace std;
+typedef long long ll;
+typedef unsigned long long ull;
+//char t[1000010];
+char w[Maxn];
+const ull p=212370440130137957ll;
+ull po[Maxn];
+ull Hash[1000010];
+void initPo()//预处理p^(r-l+1)
+{
+	po[0] = 1;
+	po[1] = p;
+	for (int i = 2; i < Maxn; ++i)
+		po[i] = po[i - 1] * p;
+}
+
+ull getSingleHash(char c[],int n) {
+	Hash[0] = c[0] - 'A';
+	for (int i = 1; i < n; ++i) {
+		Hash[i] = Hash[i - 1] * p;
+		Hash[i] += c[i] - 'A';
+	}
+}
+
+ull getHash(int l,int r)
+{
+    if(l==0)
+        return Hash[r];
+    return Hash[r]-Hash[l-1]*po[r-l+1];
+}
+
+
+int main() {
+//	int Kase;
+//	cin >> Kase;
+	initPo();
+	cin>>w;
+	getSingleHash(w,strlen(w));
+	// 0开始
+	cout<<getHash(1,2)<<':'<<getHash(5,6)<<endl;
+
+	return 0;
+}
