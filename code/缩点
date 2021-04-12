@@ -1,3 +1,4 @@
+//采蘑菇
 #include<bits/stdc++.h>
 using namespace std;
 struct edge{
@@ -104,5 +105,167 @@ int main()
 		}
 	}
 	printf ("%d",topo ());
+	return 0;
+}
+
+# 采蘑菇
+#include<bits/stdc++.h>
+using namespace std;
+#define M 500000
+typedef long long ll;
+typedef unsigned long long ull;
+inline ll read() {
+	char ch;
+	ll f = 1, res = 0;
+	while ((ch = getchar()) < '0' || ch > '9')
+		if (ch == '-') f = -1;
+	while (ch >= '0' && ch <= '9') {
+		res = (res << 1) + (res << 3) + (ch ^ 48);
+		ch = getchar();
+	}
+	return f * res;
+}
+inline void pt(ll u,ll mod) {
+	printf("%lld", u);
+	if (mod == 1)
+		putchar(' ');
+	else if (mod == 2)
+		putchar('\n');
+}
+
+ll m,n;
+ll st;
+ll dfsTime[M];
+ll minTime[M];
+ll clk=1;
+ll head[M];
+ll v[M];
+ll type[M];
+ll f[M];
+ll gap=1;
+
+struct node {
+	ll from;
+	ll to;
+	ll one;
+	ll all;
+	ll next;
+}e[M];
+stack<ll>stk;
+
+void tar(ll inx) {
+	dfsTime[inx] = minTime[inx] = clk++;
+	type[inx] = gap;
+	stk.push(inx);
+	for (ll i = head[inx]; i; i = e[i].next) {
+		ll p = e[i].to;
+		if (!dfsTime[p]) {
+			tar(p);
+			minTime[inx] = min(minTime[inx], minTime[p]);
+		}
+		else if (type[p] == gap) {
+			minTime[inx] = min(minTime[inx], minTime[p]);
+		}
+	}
+
+	vector<ll> op;
+	if (dfsTime[inx] == minTime[inx]) {
+		while (true) {
+			ll u = stk.top();
+			f[u] = inx;
+//			cout<<u<<':'<<v[u]<<endl;
+			if(u!=inx)
+				v[inx]+=v[u];
+			op.push_back(u);
+			stk.pop();
+			if (u == inx) {
+				break;
+			}
+		}
+	}
+
+	for (auto u:op) {
+		for (ll i = head[u]; i; i = e[i].next) {
+			ll p = e[i].to;
+			if (f[p] == inx) {
+				v[inx] += e[i].all;
+			}
+		}
+		type[u] = 0;
+	}
+
+}
+
+bool vis[M]={false};
+void spfa(ll s) {
+	queue<ll> op;
+	op.push(s);
+	while (!op.empty()) {
+		ll t = op.front();
+		op.pop();
+		for (ll i = head[t]; i; i = e[i].next) {
+			ll p = e[i].to;
+			if (v[t] + e[i].one > v[p]) {
+				v[p] = v[t] + e[i].one;
+				if (!vis[p]) {
+					op.push(p);
+					vis[p] = true;
+				}
+			}
+		}
+		vis[t] = false;
+	}
+}
+int main() {
+	//freopen("../in", "r", stdin);
+	//freopen("../out", "w", stdout);
+	m = read(), n = read();
+	ll a, b, c;
+	double d;
+	for (ll i = 1; i <= n; i++) {
+		a = read(), b = read(), c = read();
+		scanf("%lf", &d);
+		e[i].from = a;
+		e[i].to = b;
+		ll sum = 0;
+		e[i].one = c;
+		e[i].next = head[a];
+
+		while (c) {
+			sum += c;
+			c = c * d;
+		}
+		e[i].all = sum;
+		if (a == b) {
+			v[a] += sum;
+		}
+		else {
+			head[a] = i;
+		}
+	}
+	st = read();
+	for (ll i = 1; i <= m; i++) {
+		gap = i;
+		if (!minTime[i])
+			tar(i);
+	}
+
+	memset(head, 0, sizeof(head));
+	ll num = 1;
+	for (ll i = 1; i <= n; i++) {
+		if (f[e[i].from] != f[e[i].to]) {
+			e[num].from = f[e[i].from];
+			e[num].to = f[e[i].to];
+			e[num].one = e[i].one;
+			e[num].next = head[f[e[i].from]];
+			head[f[e[i].from]] = num++;
+		}
+	}
+	spfa(f[st]);
+	ll ans = 0;
+	for (ll i = 1; i <= m; i++) {
+		ans = max(ans, v[i]);
+	}
+	pt(ans, 2);
 	return 0;
 }

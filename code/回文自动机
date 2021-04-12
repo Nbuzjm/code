@@ -1,0 +1,65 @@
+给定一个字符串 ss。保证每个字符为小写字母。对于 ss 的每个位置，请求出以该位置结尾的回文子串个数。
+
+这个字符串被进行了加密，除了第一个字符，其他字符都需要通过上一个位置的答案来解密。
+
+具体地，若第 i(i\geq 1)i(i≥1) 个位置的答案是 kk，第 i+1i+1 个字符读入时的 \rm ASCIIASCII 码为 cc，则第 i+1i+1 个字符实际的 \rm ASCIIASCII 码为 (c-97+k)\bmod 26+97(c−97+k)mod26+97。所有字符在加密前后都为小写字母。
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
+using namespace std;
+const int MAXN = 2e6 + 5;
+
+struct Node{
+    Node *ch[26], *fail;
+    int len, sum;
+}tr[MAXN];
+
+int n;
+char s[MAXN];
+int ncnt = 2;
+Node *last;
+
+Node *New(int len) {
+    tr[ncnt].len = len;
+    tr[ncnt].fail = &tr[0];
+    for (int i = 0; i < 26; i++) tr[ncnt].ch[i] = &tr[0];
+    return &tr[ncnt++];
+}
+
+Node *GetFail(Node *x, int pos) {
+    while (s[pos - x->len - 1] != s[pos]) x = x->fail;
+    return x;
+}
+
+void Init() {
+    tr[0].len = 0; tr[1].len = -1;
+    tr[0].fail = &tr[1]; tr[1].fail = &tr[0];
+    for (int i = 0; i < 26; i++) tr[0].ch[i] = tr[1].ch[i] = &tr[0];
+    last = &tr[0];
+}
+
+void Insert(int pos) {
+    Node *cur = GetFail(last, pos);
+    if (cur->ch[s[pos] - 'a'] == &tr[0]) {
+        Node *now = New(cur->len + 2);
+        now->fail = GetFail(cur->fail, pos)->ch[s[pos] - 'a'];
+        now->sum = now->fail->sum + 1;
+        cur->ch[s[pos] - 'a'] = now;
+    }
+    last = cur->ch[s[pos] - 'a'];
+}
+
+int main() {
+    cin >> s + 1;
+    n = strlen(s + 1);
+    int k = 0;
+    Init();
+    for (int i = 1; i <= n; i++) {
+        s[i] = (s[i] - 97 + k) % 26 + 97;
+        Insert(i);
+        cout << last->sum << " ";
+        k = last->sum;
+    }
+    return 0;
+}

@@ -21,14 +21,3 @@ void Djiskra(ll s){//s为起点
     }
     //dis INF不可到，
 }
-int main(){
-    while(cin >> n >> m >> s){     //n为点数
-        int x,y,z;
-        for(int i = 0;i < m;i++){
-            cin >> x >> y >> z;
-            E[x].push_back(P(y,z));//加边 z为权值。
-        }
-       Djiskra();
-    }
-    return 0;
-}
